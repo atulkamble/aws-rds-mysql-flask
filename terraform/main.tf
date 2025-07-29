@@ -2,45 +2,31 @@ provider "aws" {
   region = "us-east-1"
 }
 
-resource "aws_vpc" "main" {
-  cidr_block = "10.0.0.0/16"
+# Get default VPC
+data "aws_vpc" "default" {
+  default = true
 }
 
-resource "aws_subnet" "subnet_1" {
-  vpc_id                  = aws_vpc.main.id
-  cidr_block              = "10.0.1.0/24"
-  availability_zone       = "us-east-1a"
-  map_public_ip_on_launch = true
-}
-
-resource "aws_internet_gateway" "igw" {
-  vpc_id = aws_vpc.main.id
-}
-
-resource "aws_route_table" "public" {
-  vpc_id = aws_vpc.main.id
-
-  route {
-    cidr_block = "0.0.0.0/0"
-    gateway_id = aws_internet_gateway.igw.id
+# Get public subnets in default VPC
+data "aws_subnets" "default" {
+  filter {
+    name   = "vpc-id"
+    values = [data.aws_vpc.default.id]
   }
 }
 
-resource "aws_route_table_association" "a" {
-  subnet_id      = aws_subnet.subnet_1.id
-  route_table_id = aws_route_table.public.id
-}
-
+# Security Group for RDS allowing public access to port 3306
 resource "aws_security_group" "rds_sg" {
-  name        = "rds_sg"
-  description = "Allow MySQL traffic"
-  vpc_id      = aws_vpc.main.id
+  name        = "rds-public-sg"
+  description = "Allow MySQL access"
+  vpc_id      = data.aws_vpc.default.id
 
   ingress {
+    description = "MySQL"
     from_port   = 3306
     to_port     = 3306
     protocol    = "tcp"
-    cidr_blocks = ["0.0.0.0/0"] # ⚠️ For production, restrict this to your IP
+    cidr_blocks = ["0.0.0.0/0"]  # ⚠️ Only for development — NOT for production
   }
 
   egress {
@@ -51,20 +37,25 @@ resource "aws_security_group" "rds_sg" {
   }
 }
 
+# Subnet Group for RDS
 resource "aws_db_subnet_group" "rds_subnet_group" {
   name       = "rds-subnet-group"
-  subnet_ids = [aws_subnet.subnet_1.id]
+  subnet_ids = data.aws_subnets.default.ids
+
+  tags = {
+    Name = "RDS subnet group"
+  }
 }
 
+# RDS Instance
 resource "aws_db_instance" "rds_instance" {
-  identifier              = "my-flask-db"
+  identifier              = "flask-db-instance"
   allocated_storage       = 20
   engine                  = "mysql"
   engine_version          = "8.0"
   instance_class          = "db.t3.micro"
-  name                    = "yourdatabasename"
-  username                = "yourdbusername"
-  password                = "yourdbpassword"
+  username                = var.db_user
+  password                = var.db_password
   db_subnet_group_name    = aws_db_subnet_group.rds_subnet_group.name
   vpc_security_group_ids  = [aws_security_group.rds_sg.id]
   publicly_accessible     = true

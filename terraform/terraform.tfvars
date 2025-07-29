@@ -1,3 +1,3 @@
-db_name     = "yourdatabasename"
-db_user     = "yourdbusername"
-db_password = "yourdbpassword"
+db_user     = "your-db-username"
+db_password = "your-db-password"
+
