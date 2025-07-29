@@ -5,7 +5,7 @@ Here's the **complete, updated Flask app code** with **AWS RDS MySQL database co
 ## ✅ Project Directory Structure
 
 ```
-flask-mysql-rds-app/
+aws-rds-mysql-flask/
 ├── app/
 │   ├── __init__.py
 │   ├── models.py
