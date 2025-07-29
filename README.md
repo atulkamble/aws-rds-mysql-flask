@@ -94,7 +94,4 @@ aws-rds-mysql-flask/
 ## 🧼 License
 
 MIT License - [Atul Kamble](https://github.com/atulkamble)
-
-```
-
 ---
