@@ -95,3 +95,54 @@ aws-rds-mysql-flask/
 
 MIT License - [Atul Kamble](https://github.com/atulkamble)
 ---
+
+Based on your Flask app structure, the database model you’ve defined (User) maps to a MySQL table. Here are the equivalent MySQL commands that would be executed when db.create_all() runs:
+
+⸻
+
+✅ SQL Commands for Table Creation
+
+CREATE TABLE user (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    name VARCHAR(100) NOT NULL
+);
+
+
+⸻
+
+✅ SQL Commands for Inserting Default Data
+
+This mirrors what your run.py script does if the table is empty:
+
+INSERT INTO user (name) VALUES ('Atul');
+INSERT INTO user (name) VALUES ('Alice');
+
+
+⸻
+
+✅ Optional: Database and User Creation (if not already done)
+
+If you’re setting this up on a fresh RDS MySQL instance, here’s how to prepare the environment manually:
+
+-- Create database
+CREATE DATABASE flaskdb;
+
+-- Create user
+CREATE USER 'flaskuser'@'%' IDENTIFIED BY 'flaskpassword';
+
+-- Grant privileges
+GRANT ALL PRIVILEGES ON flaskdb.* TO 'flaskuser'@'%';
+
+-- Apply changes
+FLUSH PRIVILEGES;
+
+Update .env accordingly:
+
+DB_USER=flaskuser
+DB_PASSWORD=flaskpassword
+DB_HOST=<your-rds-endpoint>
+DB_PORT=3306
+DB_NAME=flaskdb
+
+
+⸻
